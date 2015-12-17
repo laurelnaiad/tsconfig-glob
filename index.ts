@@ -96,7 +96,7 @@ function eol(str: string): string {
     return lf;
 }
 
-export = function(options: IOptions = {}, done: Function = () => {}): any {
+var baseFunc = function(options: IOptions = {}, done: Function = () => {}): any {
     let root = options.cwd || process.cwd(),
         configDir = path.resolve(root, options.configPath || '.'),
         filePath = path.resolve(configDir, 'tsconfig.json'),
@@ -114,11 +114,26 @@ export = function(options: IOptions = {}, done: Function = () => {}): any {
         options.indent = 4;
     }
 
-    fs.writeFile(filePath, JSON.stringify(configFile, null, options.indent)
-        .replace(/\n\r|\n|\r/g, EOL) + EOL, done);
+    if (options.sync) {
+      fs.writeFileSync(filePath, JSON.stringify(configFile, null, options.indent)
+          .replace(/\n\r|\n|\r/g, EOL) + EOL);
+    }
+    else {
+      fs.writeFile(filePath, JSON.stringify(configFile, null, options.indent)
+          .replace(/\n\r|\n|\r/g, EOL) + EOL, done);
+    }
+
 
     return configFile;
 };
+
+baseFunc['sync'] = function(options: IOptions = {}, done: Function = () => {}): any {
+  options.sync = true;
+  return baseFunc(options, done);
+}
+
+export = baseFunc;
+
 
 interface IConfigFile {
     filesGlob: Array<string>;
@@ -131,4 +146,5 @@ interface IOptions {
     cwd?: string;
     indent?: number;
     empty?: boolean;
+    sync?: boolean;
 }
