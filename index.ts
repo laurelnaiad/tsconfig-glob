@@ -114,15 +114,22 @@ var baseFunc = function(options: IOptions = {}, done: Function = () => {}): any 
         options.indent = 4;
     }
 
+    var outFileStr = JSON.stringify(configFile, null, options.indent)
+        .replace(/\n\r|\n|\r/g, EOL) + EOL;
+
     if (options.sync) {
-      fs.writeFileSync(filePath, JSON.stringify(configFile, null, options.indent)
-          .replace(/\n\r|\n|\r/g, EOL) + EOL);
+      if (outFileStr !== fileStr) {
+        fs.writeFileSync(filePath, outFileStr);
+      }
     }
     else {
-      fs.writeFile(filePath, JSON.stringify(configFile, null, options.indent)
-          .replace(/\n\r|\n|\r/g, EOL) + EOL, done);
+      if (outFileStr !== fileStr) {
+        fs.writeFile(filePath, outFileStr, done);
+      }
+      else {
+        done();
+      }
     }
-
 
     return configFile;
 };
